@@ -1,13 +1,19 @@
 import { Hono } from 'hono'
- 
+import { join, dirname } from 'node:path'
 import { cors } from 'hono/cors'
 import Database from 'bun:sqlite'
 
 const app = new Hono()
 
+// Resolve paths relative to this file
+const serverDir = import.meta.dir
+const rootDir = join(serverDir, '../..')
+const clientDistDir = join(rootDir, 'client/dist')
+const dbPath = join(serverDir, '..', 'beneficiaries.sqlite')
+
 app.use(cors())
 
-const db = new Database('beneficiaries.sqlite')
+const db = new Database(dbPath)
 db.run('PRAGMA foreign_keys = ON')
 db.run(`
   CREATE TABLE IF NOT EXISTS beneficiaries (
@@ -90,8 +96,6 @@ const isValidIBAN = (iban: string) => {
   }
   return remainder === 1
 }
-
-app.get('/', (c) => c.text('OK'))
 
 app.get('/beneficiaries', (c) => {
   const url = new URL(c.req.url)
@@ -419,17 +423,21 @@ app.delete('/payments/:id', (c) => {
   return c.json({ ok: true })
 })
 
-app.get('/assets/*', (c) => {
+app.get('/assets/*', async (c) => {
   const p = c.req.path.replace(/^\/assets\//, '')
-  const f = Bun.file(`./client/dist/assets/${p}`)
-  if (f.size > 0) {
-    return new Response(f)
+  const f = Bun.file(join(clientDistDir, 'assets', p))
+  if (await f.exists()) {
+    return new Response(f, {
+      headers: {
+        'Content-Type': f.type || 'application/octet-stream'
+      }
+    })
   }
   return c.text('Not found', 404)
 })
-app.get('*', (c) => {
-  const index = Bun.file('./client/dist/index.html')
-  if (index.size > 0) {
+app.get('*', async (c) => {
+  const index = Bun.file(join(clientDistDir, 'index.html'))
+  if (await index.exists()) {
     return new Response(index, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
   }
   return c.text('Client build not found', 404)

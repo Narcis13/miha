@@ -11,3 +11,5 @@ shared/dist/
 .turbo/
 .env
 .env.local
+logs/
+*.sqlite-*
