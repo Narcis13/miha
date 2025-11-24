@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { serveStatic } from 'hono/serve-static.bun'
 import { cors } from 'hono/cors'
 import Database from 'bun:sqlite'
 
@@ -416,6 +417,15 @@ app.delete('/payments/:id', (c) => {
     return c.json({ error: 'Not found' }, 404)
   }
   return c.json({ ok: true })
+})
+
+app.use('/assets/*', serveStatic({ root: './client/dist' }))
+app.get('*', async (c) => {
+  const file = Bun.file('./client/dist/index.html')
+  if (await file.exists()) {
+    return c.html(await file.text())
+  }
+  return c.text('Client build not found', 404)
 })
 
 export default { fetch: app.fetch, port: 3765 }
