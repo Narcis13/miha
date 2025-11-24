@@ -8,5 +8,6 @@ server/beneficiaries.sqlite
 client/dist/
 server/dist/
 shared/dist/
+.turbo/
 .env
 .env.local
