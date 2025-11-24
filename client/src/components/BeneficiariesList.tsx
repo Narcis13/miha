@@ -124,7 +124,7 @@ export function BeneficiariesList() {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Beneficiari</h2>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
+          <DialogTrigger>
             <Button
               onClick={() => setEditingId(null)}
               className="gap-2"

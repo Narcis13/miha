@@ -20,14 +20,14 @@ const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
   )
 }
 
-const DialogTrigger = ({ asChild, children }: { asChild?: boolean; children: React.ReactElement }) => {
+const DialogTrigger = ({ children }: { children: React.ReactElement<any> }) => {
   const ctx = React.useContext(DialogContext)
-  const child = React.Children.only(children)
+  const child = React.Children.only(children) as React.ReactElement<any>
   const onClick = (e: React.MouseEvent) => {
-    child.props.onClick?.(e)
+    ;(child.props as any).onClick?.(e)
     ctx?.setOpen(true)
   }
-  return React.cloneElement(child, { onClick })
+  return React.cloneElement(child, { onClick } as any)
 }
 
 const DialogOverlay = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(

@@ -26,7 +26,7 @@ export function PaymentsList({ packageId }: PaymentsListProps) {
   const [items, setItems] = useState<PaymentRow[]>([])
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [limit, setLimit] = useState(50)
+  const [limit] = useState(50)
   const [offset, setOffset] = useState(0)
   const [total, setTotal] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
@@ -139,7 +139,7 @@ export function PaymentsList({ packageId }: PaymentsListProps) {
         const benCnp = String(ben?.cnp || p.beneficiary_cnp || '')
         const benIban = String(ben?.account || p.beneficiary_account || '')
         const explicatii = 'cv medicamente cf OG83/2015'
-        const dataPlata = fmtDate(Date.now())
+        const dataPlata = fmtDate(pkg.data_plata)
         const codProgram = String(settings.programCode || '0000000000')
         const indAngajament = String(settings.commitmentIndicator || '')
         const codAngajament = String(settings.commitmentCode || '')
@@ -193,7 +193,7 @@ export function PaymentsList({ packageId }: PaymentsListProps) {
           </div>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
+          <DialogTrigger>
             <Button onClick={() => setEditingId(null)} className="gap-2">
               <Plus className="h-4 w-4" />
               Adaugă Plată
