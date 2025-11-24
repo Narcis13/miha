@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { serveStatic } from 'hono/serve-static.bun'
+ 
 import { cors } from 'hono/cors'
 import Database from 'bun:sqlite'
 
@@ -145,7 +145,7 @@ app.post('/beneficiaries', async (c) => {
       'SELECT id, name, cnp, account, COALESCE(observations, "") AS observations, created_at FROM beneficiaries WHERE id = ?'
     )
     .get(id)
-  return c.json(row, 201)
+  return c.json(row as any, 201)
 })
 
 app.put('/beneficiaries/:id', async (c) => {
@@ -173,7 +173,7 @@ app.put('/beneficiaries/:id', async (c) => {
       'SELECT id, name, cnp, account, COALESCE(observations, "") AS observations, created_at FROM beneficiaries WHERE id = ?'
     )
     .get(id)
-  return c.json(row)
+  return c.json(row as any)
 })
 
 app.delete('/beneficiaries/:id', (c) => {
@@ -283,7 +283,7 @@ app.post('/payment-packages', async (c) => {
   const row = db
     .query('SELECT id, data_plata, COALESCE(observatii, "") AS observatii, created_at FROM pachete_plati WHERE id = ?')
     .get(id)
-  return c.json(row, 201)
+  return c.json(row as any, 201)
 })
 
 app.put('/payment-packages/:id', async (c) => {
@@ -305,7 +305,7 @@ app.put('/payment-packages/:id', async (c) => {
   const row = db
     .query('SELECT id, data_plata, COALESCE(observatii, "") AS observatii, created_at FROM pachete_plati WHERE id = ?')
     .get(id)
-  return c.json(row)
+  return c.json(row as any)
 })
 
 app.delete('/payment-packages/:id', (c) => {
@@ -378,7 +378,7 @@ app.post('/payments', async (c) => {
        FROM plati pl JOIN beneficiaries b ON b.id = pl.idBeneficiar WHERE pl.id = ?`
     )
     .get(id)
-  return c.json(row, 201)
+  return c.json(row as any, 201)
 })
 
 app.put('/payments/:id', async (c) => {
@@ -407,7 +407,7 @@ app.put('/payments/:id', async (c) => {
        FROM plati pl JOIN beneficiaries b ON b.id = pl.idBeneficiar WHERE pl.id = ?`
     )
     .get(id)
-  return c.json(row)
+  return c.json(row as any)
 })
 
 app.delete('/payments/:id', (c) => {
@@ -419,11 +419,18 @@ app.delete('/payments/:id', (c) => {
   return c.json({ ok: true })
 })
 
-app.use('/assets/*', serveStatic({ root: './client/dist' }))
-app.get('*', async (c) => {
-  const file = Bun.file('./client/dist/index.html')
-  if (await file.exists()) {
-    return c.html(await file.text())
+app.get('/assets/*', (c) => {
+  const p = c.req.path.replace(/^\/assets\//, '')
+  const f = Bun.file(`./client/dist/assets/${p}`)
+  if (f.size > 0) {
+    return new Response(f)
+  }
+  return c.text('Not found', 404)
+})
+app.get('*', (c) => {
+  const index = Bun.file('./client/dist/index.html')
+  if (index.size > 0) {
+    return new Response(index, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
   }
   return c.text('Client build not found', 404)
 })
