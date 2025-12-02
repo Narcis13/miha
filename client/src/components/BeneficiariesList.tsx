@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Edit2, Trash2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, History } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,10 @@ export function BeneficiariesList() {
   const [offset, setOffset] = useState(0)
   const [total, setTotal] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [historyId, setHistoryId] = useState<string | null>(null)
+  const [historyFrom, setHistoryFrom] = useState<string>('')
+  const [historyTo, setHistoryTo] = useState<string>('')
 
   const loadBeneficiaries = async (params?: { q?: string; limit?: number; offset?: number }) => {
     setLoading(true)
@@ -118,6 +122,13 @@ export function BeneficiariesList() {
   }
 
   const editingBeneficiary = beneficiaries.find((b) => b.id === editingId)
+
+  const toDateInputValue = (d: Date) => {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
 
   return (
     <div className="space-y-4">
@@ -221,6 +232,20 @@ export function BeneficiariesList() {
                         <Edit2 className="h-4 w-4 text-blue-600" />
                       </button>
                       <button
+                        onClick={() => {
+                          setHistoryId(beneficiary.id)
+                          const now = new Date()
+                          const start = new Date(now.getFullYear(), 0, 1)
+                          setHistoryFrom(toDateInputValue(start))
+                          setHistoryTo(toDateInputValue(now))
+                          setHistoryOpen(true)
+                        }}
+                        className="p-1 hover:bg-muted rounded-md transition-colors"
+                        title="Istoric plăți"
+                      >
+                        <History className="h-4 w-4 text-emerald-700" />
+                      </button>
+                      <button
                         onClick={() => handleDelete(beneficiary.id)}
                         className="p-1 hover:bg-muted rounded-md transition-colors"
                         title="Șterge"
@@ -265,6 +290,36 @@ export function BeneficiariesList() {
           </Button>
         </div>
       </div>
+
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Istoric plăți</DialogTitle>
+            <DialogDescription>Alege perioada pentru raportul de plăți</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="historyFrom">De la</label>
+              <input id="historyFrom" type="date" className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={historyFrom} onChange={(e) => setHistoryFrom(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="historyTo">Până la</label>
+              <input id="historyTo" type="date" className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={historyTo} onChange={(e) => setHistoryTo(e.target.value)} />
+            </div>
+            <Button
+              onClick={() => {
+                if (!historyId || !historyFrom || !historyTo) return
+                const fromEpoch = Date.parse(historyFrom)
+                const toEpoch = Date.parse(historyTo)
+                const url = `/history/${historyId}?from=${fromEpoch}&to=${toEpoch}`
+                window.open(url, '_blank')
+              }}
+            >
+              Generează
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

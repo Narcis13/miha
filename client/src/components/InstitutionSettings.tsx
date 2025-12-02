@@ -14,6 +14,8 @@ export interface InstitutionSettings {
   programCode?: string
   commitmentCode?: string
   commitmentIndicator?: string
+  responsibleName?: string
+  cfppVisaHolder?: string
 }
 
 export function InstitutionSettings() {
@@ -27,6 +29,8 @@ export function InstitutionSettings() {
     programCode: '',
     commitmentCode: '',
     commitmentIndicator: '',
+    responsibleName: '',
+    cfppVisaHolder: '',
   })
 
   const [isSaved, setIsSaved] = useState(false)
@@ -169,6 +173,29 @@ export function InstitutionSettings() {
             onChange={handleChange}
             placeholder="ex: +40 123 456 789 / contact@institutie.ro"
           />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="responsibleName">Nume responsabil</Label>
+            <Input
+              id="responsibleName"
+              name="responsibleName"
+              value={settings.responsibleName || ''}
+              onChange={handleChange}
+              placeholder="ex: Popescu Ion"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="cfppVisaHolder">Titular viză CFPP</Label>
+            <Input
+              id="cfppVisaHolder"
+              name="cfppVisaHolder"
+              value={settings.cfppVisaHolder || ''}
+              onChange={handleChange}
+              placeholder="ex: Nume și funcție"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

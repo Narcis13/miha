@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "bun --watch run src/index.ts",
-    "import:beneficiaries": "bun run src/import_beneficiaries.ts"
+    "import:beneficiaries": "bun run src/import_beneficiaries.ts",
+    "import:payments": "bun run src/import_payments_package.ts"
   },
   "dependencies": {
     "hono": "^4.7.11",

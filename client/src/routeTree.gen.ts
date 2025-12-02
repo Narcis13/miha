@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PrintPackageIdRouteImport } from './routes/print.$packageId'
+import { Route as HistoryBeneficiaryIdRouteImport } from './routes/history.$beneficiaryId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrintPackageIdRoute = PrintPackageIdRouteImport.update({
+  id: '/print/$packageId',
+  path: '/print/$packageId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryBeneficiaryIdRoute = HistoryBeneficiaryIdRouteImport.update({
+  id: '/history/$beneficiaryId',
+  path: '/history/$beneficiaryId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/history/$beneficiaryId': typeof HistoryBeneficiaryIdRoute
+  '/print/$packageId': typeof PrintPackageIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/history/$beneficiaryId': typeof HistoryBeneficiaryIdRoute
+  '/print/$packageId': typeof PrintPackageIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/history/$beneficiaryId': typeof HistoryBeneficiaryIdRoute
+  '/print/$packageId': typeof PrintPackageIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/history/$beneficiaryId' | '/print/$packageId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/history/$beneficiaryId' | '/print/$packageId'
+  id: '__root__' | '/' | '/history/$beneficiaryId' | '/print/$packageId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HistoryBeneficiaryIdRoute: typeof HistoryBeneficiaryIdRoute
+  PrintPackageIdRoute: typeof PrintPackageIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/print/$packageId': {
+      id: '/print/$packageId'
+      path: '/print/$packageId'
+      fullPath: '/print/$packageId'
+      preLoaderRoute: typeof PrintPackageIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history/$beneficiaryId': {
+      id: '/history/$beneficiaryId'
+      path: '/history/$beneficiaryId'
+      fullPath: '/history/$beneficiaryId'
+      preLoaderRoute: typeof HistoryBeneficiaryIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HistoryBeneficiaryIdRoute: HistoryBeneficiaryIdRoute,
+  PrintPackageIdRoute: PrintPackageIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

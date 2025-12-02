@@ -28,7 +28,9 @@ db.run(`
     account TEXT NOT NULL DEFAULT '',
     bankName TEXT NOT NULL DEFAULT '',
     address TEXT NOT NULL DEFAULT '',
-    contact TEXT NOT NULL DEFAULT ''
+    contact TEXT NOT NULL DEFAULT '',
+    responsibleName TEXT NOT NULL DEFAULT '',
+    cfppVisaHolder TEXT NOT NULL DEFAULT ''
   )
 `)
 
@@ -38,6 +40,8 @@ const hasCol = (n: string) => settingsCols.some((c: any) => c.name === n)
 if (!hasCol('programCode')) db.run('ALTER TABLE institution_settings ADD COLUMN programCode TEXT NOT NULL DEFAULT ""')
 if (!hasCol('commitmentCode')) db.run('ALTER TABLE institution_settings ADD COLUMN commitmentCode TEXT NOT NULL DEFAULT ""')
 if (!hasCol('commitmentIndicator')) db.run('ALTER TABLE institution_settings ADD COLUMN commitmentIndicator TEXT NOT NULL DEFAULT ""')
+if (!hasCol('responsibleName')) db.run('ALTER TABLE institution_settings ADD COLUMN responsibleName TEXT NOT NULL DEFAULT ""')
+if (!hasCol('cfppVisaHolder')) db.run('ALTER TABLE institution_settings ADD COLUMN cfppVisaHolder TEXT NOT NULL DEFAULT ""')
 
 // Pachete plăți
 db.run(`
@@ -189,11 +193,11 @@ app.get('/settings', (c) => {
   const row = db.query('SELECT * FROM institution_settings WHERE id = 1').get() as any
   if (!row) {
     db.query(
-      'INSERT INTO institution_settings (id, name, cui, account, bankName, address, contact, programCode, commitmentCode, commitmentIndicator) VALUES (1, "", "", "", "", "", "", "", "", "")'
+      'INSERT INTO institution_settings (id, name, cui, account, bankName, address, contact, programCode, commitmentCode, commitmentIndicator, responsibleName, cfppVisaHolder) VALUES (1, "", "", "", "", "", "", "", "", "", "", "")'
     ).run()
-    return c.json({ name: '', cui: '', account: '', bankName: '', address: '', contact: '', programCode: '', commitmentCode: '', commitmentIndicator: '' })
+    return c.json({ name: '', cui: '', account: '', bankName: '', address: '', contact: '', programCode: '', commitmentCode: '', commitmentIndicator: '', responsibleName: '', cfppVisaHolder: '' })
   }
-  return c.json({ name: row.name, cui: row.cui, account: row.account, bankName: row.bankName, address: row.address, contact: row.contact, programCode: row.programCode || '', commitmentCode: row.commitmentCode || '', commitmentIndicator: row.commitmentIndicator || '' })
+  return c.json({ name: row.name, cui: row.cui, account: row.account, bankName: row.bankName, address: row.address, contact: row.contact, programCode: row.programCode || '', commitmentCode: row.commitmentCode || '', commitmentIndicator: row.commitmentIndicator || '', responsibleName: row.responsibleName || '', cfppVisaHolder: row.cfppVisaHolder || '' })
 })
 
 app.put('/settings', async (c) => {
@@ -208,10 +212,10 @@ app.put('/settings', async (c) => {
     return c.json({ error: 'IBAN invalid' }, 400)
   }
   db.query(
-    'INSERT INTO institution_settings (id, name, cui, account, bankName, address, contact, programCode, commitmentCode, commitmentIndicator) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name=excluded.name, cui=excluded.cui, account=excluded.account, bankName=excluded.bankName, address=excluded.address, contact=excluded.contact, programCode=excluded.programCode, commitmentCode=excluded.commitmentCode, commitmentIndicator=excluded.commitmentIndicator'
-  ).run(body.name, String(body.cui), body.account, body.bankName || '', body.address || '', body.contact || '', body.programCode || '', body.commitmentCode || '', body.commitmentIndicator || '')
+    'INSERT INTO institution_settings (id, name, cui, account, bankName, address, contact, programCode, commitmentCode, commitmentIndicator, responsibleName, cfppVisaHolder) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name=excluded.name, cui=excluded.cui, account=excluded.account, bankName=excluded.bankName, address=excluded.address, contact=excluded.contact, programCode=excluded.programCode, commitmentCode=excluded.commitmentCode, commitmentIndicator=excluded.commitmentIndicator, responsibleName=excluded.responsibleName, cfppVisaHolder=excluded.cfppVisaHolder'
+  ).run(body.name, String(body.cui), body.account, body.bankName || '', body.address || '', body.contact || '', body.programCode || '', body.commitmentCode || '', body.commitmentIndicator || '', body.responsibleName || '', body.cfppVisaHolder || '')
   const row = db.query('SELECT * FROM institution_settings WHERE id = 1').get() as any
-  return c.json({ name: row.name, cui: row.cui, account: row.account, bankName: row.bankName, address: row.address, contact: row.contact, programCode: row.programCode || '', commitmentCode: row.commitmentCode || '', commitmentIndicator: row.commitmentIndicator || '' })
+  return c.json({ name: row.name, cui: row.cui, account: row.account, bankName: row.bankName, address: row.address, contact: row.contact, programCode: row.programCode || '', commitmentCode: row.commitmentCode || '', commitmentIndicator: row.commitmentIndicator || '', responsibleName: row.responsibleName || '', cfppVisaHolder: row.cfppVisaHolder || '' })
 })
 
 // ---- Payment Packages CRUD ----

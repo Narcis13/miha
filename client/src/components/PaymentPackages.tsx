@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Edit2, Trash2, RefreshCw } from 'lucide-react'
+import { Plus, Edit2, Trash2, RefreshCw, Printer } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -214,6 +214,13 @@ export function PaymentPackages() {
                         title="Refresh"
                       >
                         <RefreshCw className="h-4 w-4 text-emerald-600" />
+                      </button>
+                      <button
+                        onClick={() => window.open(`/print/${pkg.id}`, '_blank')}
+                        className="p-1 hover:bg-muted rounded-md transition-colors"
+                        title="Print"
+                      >
+                        <Printer className="h-4 w-4 text-gray-800" />
                       </button>
                       <button
                         onClick={() => { setEditingId(pkg.id); setOpen(true) }}

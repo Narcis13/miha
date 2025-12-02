@@ -79,6 +79,31 @@ export function PaymentsList({ packageId }: PaymentsListProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [packageId])
 
+  const fetchAllPayments = async (): Promise<PaymentRow[]> => {
+    const all: PaymentRow[] = []
+    let offsetLocal = 0
+    const pageLimit = 200
+    let totalLocal: number | null = null
+    while (true) {
+      const qp = new URLSearchParams()
+      qp.set('packageId', packageId)
+      qp.set('limit', String(pageLimit))
+      qp.set('offset', String(offsetLocal))
+      const res = await fetch(`${API_BASE}/payments?${qp.toString()}`)
+      const data = await res.json()
+      const batch: PaymentRow[] = Array.isArray(data) ? data : data.items || []
+      all.push(...batch)
+      totalLocal = Array.isArray(data) ? (totalLocal ?? all.length) : (typeof data.total === 'number' ? data.total : null)
+      if (totalLocal != null) {
+        if (all.length >= totalLocal) break
+      } else {
+        if (batch.length < pageLimit) break
+      }
+      offsetLocal += pageLimit
+    }
+    return all
+  }
+
   const editingPayment = items.find((p) => p.id === editingId)
 
   const handleSubmit = async (data: { idBeneficiar: string; suma: number; nr_dosar?: string }) => {
@@ -124,8 +149,9 @@ export function PaymentsList({ packageId }: PaymentsListProps) {
         alert('Eroare la încărcarea setărilor sau pachetului')
         return
       }
+      const allItems = await fetchAllPayments()
       const startNr = Number(nextOpNumber) || 1
-      const lines = items.map((p, i) => {
+      const lines = allItems.map((p, i) => {
         const ben = beneficiaries.find((b) => b.id === p.idBeneficiar)
         const lineNo = String(i + 1)
         const nr_op = String(startNr + i)
@@ -181,6 +207,60 @@ export function PaymentsList({ packageId }: PaymentsListProps) {
     }
   }
 
+  const generateXml = async () => {
+    try {
+      const settingsRes = await fetch(`${API_BASE}/settings`)
+      const settings = await settingsRes.json()
+      const pkgRes = await fetch(`${API_BASE}/payment-packages/${packageId}`)
+      const pkg = await pkgRes.json()
+      if (!settingsRes.ok || !pkgRes.ok) {
+        alert('Eroare la încărcarea setărilor sau pachetului')
+        return
+      }
+      const allItems = await fetchAllPayments()
+      const startNr = Number(nextOpNumber) || 1
+      const toXmlAmount = (cents: number) => {
+        const v = cents / 100
+        const s = v.toFixed(2)
+        return s.replace(/\.00$/, '').replace(/(\.\d)0$/, '$1')
+      }
+      const randuri = allItems.map((p, i) => {
+        const ben = beneficiaries.find((b) => b.id === p.idBeneficiar)
+        const nr_op = String(startNr + i)
+        const suma = toXmlAmount(p.suma)
+        const benName = String(ben?.name || p.beneficiary_name || '')
+        const benCnp = String(ben?.cnp || p.beneficiary_cnp || '')
+        const benIban = String(ben?.account || p.beneficiary_account || '')
+        const codProgram = String(settings.programCode || '')
+        const indAngajament = String(settings.commitmentIndicator || '')
+        const codAngajament = String(settings.commitmentCode || '')
+        return `<rand_op nr_op="${nr_op}" iban_platitor="${settings.account || ''}" den_trezorerie="TREZORERIA STATULUI" cod_program="${codProgram}" cod_angajament="${codAngajament}" ind_angajament="${indAngajament}" cui_beneficiar="${benCnp}" den_beneficiar="${benName}" iban_beneficiar="${benIban}" den_banca_trez="CEC BANK SA" suma_op="${suma}" explicatii="cv medicamente cf OG83 din 2015" />`
+      })
+      const totalCents = allItems.reduce((acc, p) => acc + p.suma, 0)
+      const totalOpm = toXmlAmount(totalCents)
+      const nrInregistrari = allItems.length
+      const d = new Date(pkg.data_plata)
+      const luna_r = String(d.getMonth() + 1).padStart(2, '0')
+      const an = String(d.getFullYear())
+      const data_document = fmtDate(pkg.data_plata)
+      const nr_document = String(startNr).padStart(10, '0')
+      const suma_control = String(totalCents)
+      const headerAttrs = `versiune_pdf="A2.0.19" d_rec="0" suma_control="${suma_control}" total_opm="${totalOpm}" nr_inregistrari="${nrInregistrari}" luna_r="${luna_r}" an="${an}" data_document="${data_document}" nr_document="${nr_document}" nume_ip="${settings.name || ''}" adresa_ip="${settings.address || ''}" cui_ip="${settings.cui || ''}" tip_ent="1"`
+      const xml = `<?xml version="1.0"?>\n<f1129 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="mfp:anaf:dgti:f1129:declaratie:v1" xmlns="mfp:anaf:dgti:f1129:declaratie:v1" ${headerAttrs}>\n${randuri.join('\n')}\n\n</f1129>`
+      const blob = new Blob([xml], { type: 'application/xml' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `plati ${fmtDate(pkg.data_plata)}.xml`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 0)
+    } catch (e) {
+      console.error('Eroare la generarea fișierului XML de plăți', e)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -190,6 +270,7 @@ export function PaymentsList({ packageId }: PaymentsListProps) {
             <Label htmlFor="nextOpNumber">Urmatorul nr. OP</Label>
             <Input id="nextOpNumber" value={nextOpNumber} onChange={(e) => setNextOpNumber(e.target.value)} placeholder="ex: 1" className="w-24" />
             <Button type="button" variant="outline" onClick={generateFile}>Genereaza fisier plati</Button>
+            <Button type="button" variant="outline" onClick={generateXml}>Genereaza fisier plati (XML)</Button>
           </div>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
