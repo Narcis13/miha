@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
+import { API_BASE } from '@/lib/api-config'
 
 interface SettingsRow {
   name: string
@@ -29,8 +30,6 @@ interface PaymentRow {
   suma: number
   nr_dosar: string
 }
-
-const API_BASE = 'http://localhost:3765'
 
 export const Route = createFileRoute('/print/$packageId')({
   component: PrintPage,
