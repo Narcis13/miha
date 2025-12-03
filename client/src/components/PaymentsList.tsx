@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { API_BASE } from '@/lib/api-config'
 
 interface PaymentRow {
   id: string
@@ -22,7 +23,6 @@ interface PaymentsListProps {
 }
 
 export function PaymentsList({ packageId }: PaymentsListProps) {
-  const API_BASE = 'http://localhost:3765'
   const [items, setItems] = useState<PaymentRow[]>([])
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)

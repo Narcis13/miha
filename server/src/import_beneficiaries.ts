@@ -1,5 +1,8 @@
 import Database from 'bun:sqlite'
-const db = new Database(new URL('../beneficiaries.sqlite', import.meta.url).pathname)
+import { join } from 'node:path'
+
+const dbPath = join(import.meta.dir, '..', 'beneficiaries.sqlite')
+const db = new Database(dbPath)
 db.run(`
   CREATE TABLE IF NOT EXISTS beneficiaries (
     id TEXT PRIMARY KEY,

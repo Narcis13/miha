@@ -18,6 +18,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { BeneficiaryForm } from './BeneficiaryForm'
+import { API_BASE } from '@/lib/api-config'
 
 export interface Beneficiary {
   id: string
@@ -31,7 +32,6 @@ export function BeneficiariesList() {
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([])
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const API_BASE = 'http://localhost:3765'
   const [q, setQ] = useState('')
   const [limit, setLimit] = useState(50)
   const [offset, setOffset] = useState(0)

@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input'
 import { PaymentPackageForm, PaymentPackageInput } from './PaymentPackageForm'
 import { PaymentsList } from './PaymentsList'
+import { API_BASE } from '@/lib/api-config'
 
 export interface PaymentPackageRow {
   id: string
@@ -17,7 +18,6 @@ export interface PaymentPackageRow {
 }
 
 export function PaymentPackages() {
-  const API_BASE = 'http://localhost:3765'
   const [items, setItems] = useState<PaymentPackageRow[]>([])
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
