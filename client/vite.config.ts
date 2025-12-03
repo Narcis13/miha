@@ -19,4 +19,12 @@ export default defineConfig({
 			"@": path.resolve(__dirname, "./src"),
 		},
 	},
+	server: {
+		proxy: {
+			'/beneficiaries': 'http://localhost:3765',
+			'/payment-packages': 'http://localhost:3765',
+			'/payments': 'http://localhost:3765',
+			'/settings': 'http://localhost:3765',
+		},
+	},
 });
