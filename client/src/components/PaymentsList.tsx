@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Plus, Edit2, Trash2 } from 'lucide-react'
+import { useEffect, useState, useMemo } from 'react'
+import { Plus, Edit2, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -34,6 +34,7 @@ export function PaymentsList({ packageId }: PaymentsListProps) {
   const [beneficiaries, setBeneficiaries] = useState<{ id: string; name: string; cnp: string; account: string }[]>([])
   const [benQuery, setBenQuery] = useState('')
   const [nextOpNumber, setNextOpNumber] = useState('')
+  const [sortNrDosar, setSortNrDosar] = useState<'asc' | 'desc' | null>(null)
 
   const loadPayments = async (params?: { limit?: number; offset?: number }) => {
     setLoading(true)
@@ -105,6 +106,24 @@ export function PaymentsList({ packageId }: PaymentsListProps) {
   }
 
   const editingPayment = items.find((p) => p.id === editingId)
+
+  const sortedItems = useMemo(() => {
+    if (!sortNrDosar) return items
+    return [...items].sort((a, b) => {
+      const aVal = a.nr_dosar || ''
+      const bVal = b.nr_dosar || ''
+      const cmp = aVal.localeCompare(bVal, 'ro', { numeric: true })
+      return sortNrDosar === 'asc' ? cmp : -cmp
+    })
+  }, [items, sortNrDosar])
+
+  const toggleSortNrDosar = () => {
+    setSortNrDosar((prev) => {
+      if (prev === null) return 'asc'
+      if (prev === 'asc') return 'desc'
+      return null
+    })
+  }
 
   const handleSubmit = async (data: { idBeneficiar: string; suma: number; nr_dosar?: string }) => {
     try {
@@ -311,7 +330,7 @@ export function PaymentsList({ packageId }: PaymentsListProps) {
                   <select name="idBeneficiar" defaultValue={editingPayment?.idBeneficiar || ''} className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm" required>
                     <option value="" disabled>Alege un beneficiar</option>
                     {beneficiaries.map((b) => (
-                      <option key={b.id} value={b.id}>{b.name}</option>
+                      <option key={b.id} value={b.id}>{b.name} ({b.cnp})</option>
                     ))}
                   </select>
                   <Input value={benQuery} onChange={(e) => setBenQuery(e.target.value)} placeholder="Caută" />
@@ -343,7 +362,18 @@ export function PaymentsList({ packageId }: PaymentsListProps) {
             <TableRow>
               <TableHead>Beneficiar</TableHead>
               <TableHead>Suma (lei)</TableHead>
-              <TableHead>Nr. dosar</TableHead>
+              <TableHead>
+                <button
+                  type="button"
+                  onClick={toggleSortNrDosar}
+                  className="flex items-center gap-1 hover:text-foreground transition-colors"
+                >
+                  Nr. dosar
+                  {sortNrDosar === null && <ArrowUpDown className="h-4 w-4 text-muted-foreground" />}
+                  {sortNrDosar === 'asc' && <ArrowUp className="h-4 w-4" />}
+                  {sortNrDosar === 'desc' && <ArrowDown className="h-4 w-4" />}
+                </button>
+              </TableHead>
               <TableHead className="w-24">Acțiuni</TableHead>
             </TableRow>
           </TableHeader>
@@ -352,14 +382,14 @@ export function PaymentsList({ packageId }: PaymentsListProps) {
               <TableRow>
                 <TableCell colSpan={4} className="py-6">Se încarcă...</TableCell>
               </TableRow>
-            ) : items.length === 0 ? (
+            ) : sortedItems.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                   Nu sunt plăți în acest pachet. Apasă "Adaugă Plată" pentru a începe.
                 </TableCell>
               </TableRow>
             ) : (
-              items.map((p) => (
+              sortedItems.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.beneficiary_name}</TableCell>
                   <TableCell>{(p.suma / 100).toFixed(2)}</TableCell>

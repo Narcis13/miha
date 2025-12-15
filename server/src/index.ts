@@ -348,7 +348,7 @@ app.get('/payments', (c) => {
        FROM plati pl
        JOIN beneficiaries b ON b.id = pl.idBeneficiar
        ${where}
-       ORDER BY b.name ASC
+       ORDER BY pl.rowid ASC
        LIMIT ? OFFSET ?`
     )
     .all(...args, limit, offset)
